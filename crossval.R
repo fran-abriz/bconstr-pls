@@ -56,7 +56,7 @@ mvrCv <- function(X, Y, ncomp, Y.add = NULL, weights = NULL,
                       simpls = simpls.fit,
                       oscorespls = oscorespls.fit,
                       cppls = cppls.fit,
-                      svdpc = MYsvdpc.fit)
+                      svdpc = svdpc.fit)
 
     ## Helper function to perform the cross-validatoin for one segment.
     ## Defined inside mvrCv to be able to access local variables:
