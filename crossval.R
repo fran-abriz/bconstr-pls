@@ -123,8 +123,13 @@ mvrCv <- function(X, Y, ncomp, Y.add = NULL, weights = NULL,
 
     ## Calculate validation statistics:
     PRESS0 <- apply(Y, 2, var) * nobj^2 / (nobj - 1) # FIXME: Only correct for loocv!
-    PRESS <- colSums((cvPred - c(Y))^2)
-
+    cvraw <- (cvPred - c(Y))^2
+    PRESS <- colSums(cvraw)
+    cvm <- colMeans(cvraw, na.rm=TRUE)
+    cvr <- matrix(cvraw, nrow=28, ncol=6)
+    zr <- scale(cvr, cvm, FALSE)^2
+    cvsd <- sqrt(colMeans(zr, na.rm=TRUE)) / (njob-1)
+    
     ## Add dimnames:
     objnames <- dnX[[1]]
     if (is.null(objnames)) objnames <- dnY[[1]]
@@ -139,6 +144,7 @@ mvrCv <- function(X, Y, ncomp, Y.add = NULL, weights = NULL,
                                  paste("Seg", seq_along(segments)))
 
     list(method = "CV", pred = cvPred, coefficients = if (jackknife) cvCoef,
+         cvm=cvm, cvsd = cvsd,
          gammas = if (method == "cppls") gammas,
          PRESS0 = PRESS0, PRESS = PRESS, adj = adj / nobj^2,
          segments = segments, ncomp = ncomp)
@@ -258,8 +264,13 @@ crossval <- function(object, segments = 10,
 
     ## Calculate validation statistics:
     PRESS0 <- apply(Y, 2, var) * nobj^2 / (nobj - 1) # FIXME: Only correct for loocv!
-    PRESS <- colSums((cvPred - c(Y))^2)
-
+    cvraw <- (cvPred - c(Y))^2
+    PRESS <- colSums(cvraw)
+    cvm <- colMeans(cvraw, na.rm=TRUE)
+    cvr <- matrix(cvraw, nrow=28, ncol=6)
+    zr <- scale(cvr, cvm, FALSE)^2
+    cvsd <- sqrt(colMeans(zr, na.rm=TRUE)) / (njob-1)
+    
     ## Add dimnames:
     objnames <- rownames(data)
     if (is.null(objnames)) objnames <- rownames(Y)
@@ -273,6 +284,7 @@ crossval <- function(object, segments = 10,
     ## Return the original object, with a component `validation' added
     object$validation <- list(method = "CV", pred = cvPred,
                               coefficients = if (jackknife) cvCoef,
+                              cvm = cvm, cvsd = cvsd, R2 = R2(object)$val[1,1,],
                               gammas = if (cppls) gammas,
                               PRESS0 = PRESS0, PRESS = PRESS,
                               adj = adj / nobj^2,
